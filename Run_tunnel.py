@@ -2,7 +2,7 @@ import subprocess
 import os
 import sys
 
-CLOUDFLARED_BIN = "/home/container/cloudflared"  # ide másoljuk fel a binárist
+CLOUDFLARED_BIN = "./Cloudflared"  # ide másoljuk fel a binárist
 TUNNEL_ID = "69b2be84-7e1a-4f89-bf4e-ffa548c31d5a"
 
 def run_tunnel():
