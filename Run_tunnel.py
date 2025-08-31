@@ -2,6 +2,7 @@ import os
 import sys
 import requests
 import subprocess
+import time
 
 # ---------- CONFIG ----------
 CLOUDFLARED_DIR = "./Cloudflared"
@@ -14,13 +15,15 @@ CLOUDFLARED_URL = "https://github.com/cloudflare/cloudflared/releases/latest/dow
 def download_cloudflared():
     os.makedirs(CLOUDFLARED_DIR, exist_ok=True)
     if os.path.exists(CLOUDFLARED_BIN):
-        print("Cloudflared már létezik, kihagyjuk a letöltést.")
+        print("[INFO] Cloudflared már létezik, kihagyjuk a letöltést.")
         return
 
-    print("Cloudflared letöltése...")
-    response = requests.get(CLOUDFLARED_URL, stream=True)
-    if response.status_code != 200:
-        print(f"Hiba a letöltéskor: {response.status_code}")
+    print("[INFO] Cloudflared letöltése...")
+    try:
+        response = requests.get(CLOUDFLARED_URL, stream=True)
+        response.raise_for_status()
+    except Exception as e:
+        print(f"[ERROR] Hiba a letöltéskor: {e}")
         sys.exit(1)
 
     with open(CLOUDFLARED_BIN, "wb") as f:
@@ -28,27 +31,49 @@ def download_cloudflared():
             f.write(chunk)
 
     os.chmod(CLOUDFLARED_BIN, 0o755)
-    print(f"Cloudflared bináris sikeresen letöltve: {CLOUDFLARED_BIN}")
+    print(f"[SUCCESS] Cloudflared bináris sikeresen letöltve: {CLOUDFLARED_BIN}")
 
 def run_tunnel():
     if not os.path.exists(CLOUDFLARED_BIN):
-        print("Cloudflared bináris nem található!")
+        print("[ERROR] Cloudflared bináris nem található!")
         sys.exit(1)
     if not os.path.exists(CONFIG_FILE):
-        print(f"Config fájl nem található: {CONFIG_FILE}")
+        print(f"[ERROR] Config fájl nem található: {CONFIG_FILE}")
         sys.exit(1)
 
-    cmd = [CLOUDFLARED_BIN, "tunnel", "run", TUNNEL_ID, "--config", CONFIG_FILE]
+    cmd = [CLOUDFLARED_BIN, "tunnel", "--config", CONFIG_FILE, "run", TUNNEL_ID]
     env = os.environ.copy()
 
     try:
-        print("Cloudflared tunnel indítása...")
-        process = subprocess.Popen(cmd, env=env)
-        process.wait()
+        print("[INFO] Cloudflared tunnel indítása...")
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+
+        # Figyeljük a logokat
+        while True:
+            output = process.stdout.readline()
+            if output:
+                line = output.decode().strip()
+                print(f"[LOG] {line}")
+                if "Tunnel is ready" in line or "started" in line.lower():
+                    print("[SUCCESS] Tunnel elindult sikeresen!")
+            elif process.poll() is not None:
+                break
+
+        stderr = process.stderr.read().decode().strip()
+        if stderr:
+            print(f"[ERROR] {stderr}")
+
+        exit_code = process.wait()
+        if exit_code != 0:
+            print(f"[FAILED] Tunnel leállt, exit code: {exit_code}")
+        else:
+            print("[INFO] Tunnel futása befejeződött rendben.")
+
     except KeyboardInterrupt:
-        print("Tunnel leállítva")
+        print("[INFO] Tunnel leállítva Ctrl+C-vel")
+        process.terminate()
     except Exception as e:
-        print(f"Hiba a tunnel futtatásakor: {e}")
+        print(f"[ERROR] Hiba a tunnel futtatásakor: {e}")
 
 # ---------- MAIN ----------
 if __name__ == "__main__":
