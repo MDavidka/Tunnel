@@ -1,0 +1,2 @@
+# requirements.txt
+# Nincs extra csomag, mert csak subprocess és os modulokat használunk
