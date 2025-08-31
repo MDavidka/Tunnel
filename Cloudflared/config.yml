@@ -2,6 +2,6 @@ tunnel: 69b2be84-7e1a-4f89-bf4e-ffa548c31d5a
 credentials-file: ./Cloudflared/69b2be84-7e1a-4f89-bf4e-ffa548c31d5a.json
 
 ingress:
-  - hostname: admin.sycord.com
+  - hostname: dev.sycord.com
     service: http://gnode01.pyts-cloud.fr:30158
   - service: http_status:404
