@@ -1,0 +1,7 @@
+tunnel: 69b2be84-7e1a-4f89-bf4e-ffa548c31d5a
+credentials-file: /data/data/com.termux/files/home/.cloudflared/69b2be84-7e1a-4f89-bf4e-ffa548c31d5a.json
+
+ingress:
+  - hostname: admin.sycord.com
+    service: http://192.168.0.178:8080
+  - service: http_status:404
