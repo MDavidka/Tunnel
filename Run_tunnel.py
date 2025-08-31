@@ -1,40 +1,44 @@
-import subprocess
 import os
 import sys
+import requests
+import subprocess
 
 # ---------- CONFIG ----------
-# Cloudflared bináris helye (repo-ban)
-CLOUDFLARED_BIN = "./Cloudflared/cloudflared"
-
-# Tunnel ID (a Cloudflare által generált)
+CLOUDFLARED_DIR = "./Cloudflared"
+CLOUDFLARED_BIN = os.path.join(CLOUDFLARED_DIR, "cloudflared")
 TUNNEL_ID = "69b2be84-7e1a-4f89-bf4e-ffa548c31d5a"
+CONFIG_FILE = os.path.join(CLOUDFLARED_DIR, "config.yml")
+CLOUDFLARED_URL = "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"
 
-# Tunnel konfiguráció fájl (relatív útvonal a repo-hoz)
-CONFIG_FILE = "./Cloudflared/config.yml"
+# ---------- FUNKCIÓK ----------
+def download_cloudflared():
+    os.makedirs(CLOUDFLARED_DIR, exist_ok=True)
+    if os.path.exists(CLOUDFLARED_BIN):
+        print("Cloudflared már létezik, kihagyjuk a letöltést.")
+        return
 
-# ---------- SCRIPT ----------
-def run_tunnel():
-    # Ellenőrzés: cloudflared létezik-e
-    if not os.path.exists(CLOUDFLARED_BIN):
-        print(f"Cloudflared nem található: {CLOUDFLARED_BIN}")
+    print("Cloudflared letöltése...")
+    response = requests.get(CLOUDFLARED_URL, stream=True)
+    if response.status_code != 200:
+        print(f"Hiba a letöltéskor: {response.status_code}")
         sys.exit(1)
 
-    # Ellenőrzés: config.yml létezik-e
+    with open(CLOUDFLARED_BIN, "wb") as f:
+        for chunk in response.iter_content(1024):
+            f.write(chunk)
+
+    os.chmod(CLOUDFLARED_BIN, 0o755)
+    print(f"Cloudflared bináris sikeresen letöltve: {CLOUDFLARED_BIN}")
+
+def run_tunnel():
+    if not os.path.exists(CLOUDFLARED_BIN):
+        print("Cloudflared bináris nem található!")
+        sys.exit(1)
     if not os.path.exists(CONFIG_FILE):
         print(f"Config fájl nem található: {CONFIG_FILE}")
         sys.exit(1)
 
-    # Tunnel parancs
-    cmd = [
-        CLOUDFLARED_BIN,
-        "tunnel",
-        "run",
-        TUNNEL_ID,
-        "--config",
-        CONFIG_FILE
-    ]
-
-    # Környezeti változók
+    cmd = [CLOUDFLARED_BIN, "tunnel", "run", TUNNEL_ID, "--config", CONFIG_FILE]
     env = os.environ.copy()
 
     try:
@@ -48,4 +52,5 @@ def run_tunnel():
 
 # ---------- MAIN ----------
 if __name__ == "__main__":
+    download_cloudflared()
     run_tunnel()
