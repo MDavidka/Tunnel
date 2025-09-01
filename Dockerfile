@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Alap függőségek
+# Függőségek
 RUN apt-get update && apt-get install -y \
     curl unzip ca-certificates git procps \
     && rm -rf /var/lib/apt/lists/*
@@ -11,7 +11,7 @@ WORKDIR /app
 # Projekt bemásolása
 COPY . /app
 
-# Python csomagok
+# Python csomagok telepítése
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Cloudflared letöltése
@@ -24,5 +24,5 @@ RUN mkdir -p /app/Cloudflared \
 COPY config.yml /app/config.yml
 COPY credentials.json /app/credentials.json
 
-# Entrypoint -> a GitHubból bemásolt Run_tunnel.py
+# Entrypoint -> futtatja a Run_tunnel.py-t
 ENTRYPOINT ["python3", "/app/Run_tunnel.py"]
