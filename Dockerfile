@@ -1,19 +1,17 @@
-FROM python:3.11-slim
+FROM alpine:3.18
 
-# Telepítéshez kellő eszközök
-RUN apt-get update && apt-get install -y curl unzip
+# Install dependencies
+RUN apk add --no-cache curl bash
 
-# Projekt bemásolása
+# Download cloudflared
+RUN curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
+    -o /usr/local/bin/cloudflared && \
+    chmod +x /usr/local/bin/cloudflared
+
+# Copy tunnel config & creds
 WORKDIR /app
-COPY . /app
+COPY config.yml /app/config.yml
+COPY credentials.json /app/credentials.json
 
-# Python csomagok
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Cloudflared letöltése (Linux AMD64 build)
-RUN mkdir -p /app/Cloudflared \
-    && curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /app/Cloudflared/cloudflared \
-    && chmod +x /app/Cloudflared/cloudflared
-
-# Entrypoint: Python script indítja a tunnel-t
-ENTRYPOINT ["python3", "/Run_tunnel.py"]
+# Run cloudflared
+CMD ["cloudflared", "tunnel", "--config", "/app/config.yml", "run"]
