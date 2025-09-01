@@ -16,4 +16,4 @@ RUN mkdir -p /app/Cloudflared \
     && chmod +x /app/Cloudflared/cloudflared
 
 # Entrypoint: Python script indítja a tunnel-t
-ENTRYPOINT ["python3", "/app/all_in_one_runner.py"]
+ENTRYPOINT ["python3", "/Run_tunnel.py"]
