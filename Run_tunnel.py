@@ -78,4 +78,7 @@ def run_tunnel():
 # ---------- MAIN ----------
 if __name__ == "__main__":
     download_cloudflared()
-    run_tunnel()
+    while True:
+        run_tunnel()
+        print("[INFO] Tunnel leállt, újraindítás 10mp múlva...")
+        time.sleep(10)
