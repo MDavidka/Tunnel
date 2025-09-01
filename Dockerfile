@@ -6,10 +6,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Munkakönyvtár
-WORKDIR /app
+WORKDIR /
 
 # Projekt bemásolása
-COPY . /app
+COPY . /
 
 # Python csomagok telepítése
 RUN pip install --no-cache-dir -r requirements.txt
@@ -21,8 +21,8 @@ RUN mkdir -p /app/Cloudflared \
     && chmod +x /app/Cloudflared/cloudflared
 
 # Config és credentials
-COPY config.yml /app/config.yml
-COPY credentials.json /app/credentials.json
+COPY config.yml /config.yml
+COPY credentials.json /credentials.json
 
 # Entrypoint -> futtatja a Run_tunnel.py-t
 ENTRYPOINT ["python3", "/app/Run_tunnel.py"]
