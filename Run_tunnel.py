@@ -18,7 +18,7 @@ def download_cloudflared():
         print("[INFO] Cloudflared már létezik, kihagyjuk a letöltést.")
         return
 
-    print("[INFO] Cloudflared letöltése...")
+    print("[INFO] Cloudflare letöltése...")
     try:
         response = requests.get(CLOUDFLARED_URL, stream=True)
         response.raise_for_status()
